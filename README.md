@@ -90,6 +90,42 @@ authenticated admin can create staff accounts.
 - `POST /api/admin/staff`
 - `DELETE /api/admin/staff/{user_id}`
 
+## Module 10: Dashboard and reports
+
+Authenticated users can access:
+
+- `GET /api/v1/dashboard/summary`
+- `GET /api/v1/dashboard/subscriptions`
+- `GET /api/v1/dashboard/revenue`
+- `GET /api/v1/dashboard/payments`
+- `GET /api/v1/dashboard/outstanding`
+- `GET /api/v1/dashboard/overdue?page=1&page_size=25`
+
+Reports accept `start_date`, `end_date`, `status`, `customer_id`,
+`payment_method`, and `product_id` where applicable. Dates use `YYYY-MM-DD`.
+Customers are always scoped to their authenticated user; a supplied
+`customer_id` cannot broaden their access. Admin and staff reports can be
+filtered by customer.
+
+Revenue is defined as successful payment amounts, counted once by `paid_at`.
+Invoice totals are used for outstanding balances, less successful payments
+allocated to each invoice. Cancelled invoices and unsuccessful payments are
+excluded. Overdue invoices require a past due date and a positive remaining
+balance.
+
+The 15-case dashboard API test suite uses an isolated SQLite database:
+
+```powershell
+cd server
+.\venv\Scripts\python.exe -m tests.test_dashboard
+```
+
+For PostgreSQL performance measurement, inspect the endpoint response time in
+your API client and use PostgreSQL `EXPLAIN (ANALYZE, BUFFERS)` on slow
+aggregate queries. The indexed status, date, customer, product, and foreign
+key columns support normal dashboard queries; response time is environment
+dependent.
+
 ## Validation
 
 ```powershell
