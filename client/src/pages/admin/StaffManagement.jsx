@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../../api.js';
+import api, { getApiError } from '../../api.js';
 
 export default function StaffManagement() {
   const [staff, setStaff] = useState([]);
@@ -7,7 +7,14 @@ export default function StaffManagement() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
 
-  const load = () => api.get('/admin/staff').then((r) => setStaff(r.data.staff));
+  const load = async () => {
+    try {
+      const response = await api.get('/admin/staff');
+      setStaff(response.data.staff);
+    } catch (err) {
+      setError(getApiError(err, 'Unable to load staff'));
+    }
+  };
   useEffect(() => {
     load();
   }, []);
@@ -31,17 +38,17 @@ export default function StaffManagement() {
           </thead>
           <tbody>
             {staff.map((s) => (
-              <tr key={s._id}>
+              <tr key={s.id}>
                 <td>{s.name}</td>
                 <td>{s.email}</td>
                 <td><span className="badge blue">{s.role}</span></td>
-                <td>{new Date(s.createdAt).toLocaleDateString()}</td>
+                <td>{new Date(s.created_at).toLocaleDateString()}</td>
                 <td>
                   <button
                     className="secondary"
                     onClick={async () => {
                       if (!window.confirm(`Remove ${s.name}?`)) return;
-                      await api.delete(`/admin/staff/${s._id}`);
+                      await api.delete(`/admin/staff/${s.id}`);
                       load();
                     }}
                   >
@@ -68,8 +75,7 @@ export default function StaffManagement() {
                   setForm({ name: '', email: '', password: '' });
                   load();
                 } catch (err) {
-                  const issues = err.response?.data?.issues?.map((i) => i.message).join('. ');
-                  setError(issues || err.response?.data?.message || 'Failed');
+                  setError(getApiError(err, 'Failed to create staff member'));
                 }
               }}
             >
