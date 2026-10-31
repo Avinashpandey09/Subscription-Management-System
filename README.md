@@ -1,83 +1,101 @@
 # Subscription Management System
 
-Full-stack subscription billing app: auth + RBAC, product/plan catalog, quotation
-lifecycle, automated billing, payments, finance dashboard, and a customer portal.
+Full-stack subscription management application with a React/Vite frontend and
+FastAPI/PostgreSQL backend.
 
-- **server/** — Node + Express + Mongoose API (Modules 1–6 backend)
-- **client/** — React + Vite + React Router + Recharts (Modules 1–6 frontend)
+## Team setup
 
-## Prerequisites
+### 1. Configure the backend
 
-- Node.js 20+ and npm
-- MongoDB (local `mongod` or a MongoDB Atlas connection string)
-
-## Quick start
-
-```bash
-# 1. API
+```powershell
 cd server
-cp .env.example .env        # then set MONGO_URI + JWT_SECRET
-npm install
-npm run seed                # demo users, catalog, 1,100+ subscriptions + invoices
-npm run dev                 # API on http://localhost:5000
-
-# 2. Frontend (new terminal)
-cd client
-npm install
-npm run dev                 # app on http://localhost:5173
+copy .env.example .env
 ```
 
-Open **http://localhost:5173** in a browser. Seed logins (password `Demo@1234`):
+Update `server/.env` with the PostgreSQL connection string and a private
+`JWT_SECRET_KEY`. Do not commit `.env` or share its secrets.
 
-| Role     | Email               |
-|----------|---------------------|
-| admin    | admin@demo.local    |
-| staff    | staff@demo.local    |
-| customer | customer@demo.local |
+### 2. Install dependencies
 
-## Module map
+```powershell
+cd server
+.\venv\Scripts\python.exe -m pip install -r requirements.txt
 
-| # | Module | Backend (`server/src/`) | Frontend (`client/src/`) |
-|---|--------|-------------------------|--------------------------|
-| 1 | Auth, RBAC, staff | `models/User.js`, `models/PasswordReset.js`, `middleware/auth.js`, `middleware/rbac.js`, `services/auth.service.js`, `routes/auth.routes.js` + `routes/admin.routes.js`, `controllers/auth.controller.js` | `auth/AuthContext.jsx`, `auth/ProtectedRoute.jsx`, `pages/Login.jsx`, `pages/Signup.jsx`, `pages/ForgotPassword.jsx`, `pages/ResetPassword.jsx`, `pages/admin/StaffManagement.jsx` |
-| 2 | Catalog, plans, taxes, discounts | `models/Product.js`, `models/Plan.js`, `models/Tax.js`, `models/Discount.js`, `services/tax.service.js`, `services/discount.service.js`, `routes/catalog.routes.js`, `controllers/catalog.controller.js` | `pages/admin/ProductsPage.jsx`, `pages/admin/PlansPage.jsx`, `pages/admin/TaxesDiscountsPage.jsx` |
-| 3 | Quotations & lifecycle | `models/QuotationTemplate.js`, `models/Subscription.js`, `utils/numbering.js`, `routes/subscription.routes.js`, `controllers/subscription.controller.js` | `pages/staff/SubscriptionsPage.jsx`, `pages/staff/SubscriptionDetail.jsx` |
-| 4 | Billing & invoicing | `models/Invoice.js`, `services/billing.service.js`, `jobs/billing.cron.js`, `utils/pdf.js`, `routes/invoice.routes.js`, `controllers/invoice.controller.js` | `pages/staff/InvoicesPage.jsx` |
-| 5 | Payments | `models/Payment.js`, `services/payment.service.js`, `routes/payment.routes.js`, `controllers/payment.controller.js` | `pages/staff/PaymentsPage.jsx`, `pages/staff/RecordPaymentModal.jsx` |
-| 6 | Dashboard & portal | `services/dashboard.service.js`, `routes/dashboard.routes.js`, `utils/seed.js` | `pages/finance/DashboardPage.jsx`, `pages/customer/CustomerPortal.jsx` |
+cd ..\client
+npm install
+```
 
-Note: `POST /api/admin/staff` (admin-only staff creation) lives in
-`routes/admin.routes.js` and is handled by `auth.controller.createStaffHandler`.
+### 3. Create demo users
 
-## Key API routes
+Run this against the team's configured PostgreSQL database:
 
-- `POST /api/auth/signup|login|logout`, `GET /api/auth/me`
-- `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
-- `POST /api/admin/staff` (admin only)
-- `/api/catalog/products|plans|taxes|discounts` (GET open, writes admin-only)
-- `/api/subscriptions`, `/api/subscriptions/from-template/:id`, `PATCH /:id/status`, `POST /:id/renew`
-- `/api/invoices`, `POST /api/invoices/run-billing`, `GET /:id/pdf`, `POST /:id/send`
-- `/api/payments`, `GET /api/dashboard`
+```powershell
+cd server
+.\venv\Scripts\python.exe seed_demo.py
+```
 
-## Design notes
+The script is safe to rerun. It creates or updates these users:
 
-- **Money is integer paise** in every model; the UI converts to/from rupees.
-- **JWT in an httpOnly cookie** (`token`); customers are strictly isolated via
-  `enforceCustomerScope` (`customerId = req.user.id`), ignoring crafted query params.
-- **Subscription lifecycle**: Draft → Quotation → Confirmed → Active → Closed;
-  Paused only when the plan is pausable. Activating sets `nextInvoiceDate = startDate`.
-- **Billing is idempotent**: unique `{ subscriptionId, periodStart }` index, one
-  period advance per run, atomic discount `$inc` with `usedCount < usageLimit`.
-- **Invoices**: Draft → Confirmed → Paid (Paid only via payments), plus Cancelled.
-  Overdue = `dueDate < today` on Draft/Confirmed invoices.
-- **Billing cron**: schedule via `BILLING_CRON` (default daily 02:00); empty disables.
-- **Email**: configure `SMTP_*` in `.env`; without it, mails log to the console
-  (dev fallback) so password resets still work end-to-end for testing.
-- **Dashboard** uses indexed aggregates + `.lean()` and reports its own
-  `durationMs` against the < 2 s target.
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@demo.example.com` | `Demo@1234` |
+| Staff | `staff@demo.example.com` | `Demo@1234` |
+| Customer | `customer@demo.example.com` | `Demo@1234` |
 
-## Tests
+These are shared development credentials only. Change them before any
+non-development deployment.
 
-```bash
-cd server && npm test   # DB-free unit tests (discounts, lifecycle, periods, passwords)
+### 4. Start the API and frontend
+
+Terminal 1:
+
+```powershell
+cd server
+.\venv\Scripts\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Terminal 2:
+
+```powershell
+cd client
+npm run dev
+```
+
+Open <http://localhost:5173>. FastAPI Swagger documentation is available at
+<http://localhost:8000/docs>.
+
+## Authentication test flow
+
+1. Open `/signup` and register a customer account.
+2. Confirm that registration redirects to the customer portal.
+3. Log out and log back in at `/login`.
+4. Verify the protected session at `/api/auth/me`.
+5. Log in as `admin@demo.example.com` to access admin staff management.
+6. Use `/forgot-password` and read the development reset link from the API
+   console.
+
+Authentication uses Argon2 password hashing and a JWT stored in an httpOnly
+cookie. Customer registration always creates the `customer` role; only an
+authenticated admin can create staff accounts.
+
+## Current API routes
+
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `POST /api/auth/forgot-password`
+- `POST /api/auth/reset-password`
+- `GET /api/admin/staff`
+- `POST /api/admin/staff`
+- `DELETE /api/admin/staff/{user_id}`
+
+## Validation
+
+```powershell
+cd client
+npm run build
+
+cd ..\server
+.\venv\Scripts\python.exe -m compileall main.py config models schemas router
 ```

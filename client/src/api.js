@@ -5,6 +5,12 @@ const api = axios.create({
   withCredentials: true
 });
 
+export const getApiError = (error, fallback = 'Something went wrong') => {
+  const detail = error.response?.data?.detail;
+  if (Array.isArray(detail)) return detail.map((issue) => issue.msg).join('. ');
+  return error.response?.data?.message || detail || error.message || fallback;
+};
+
 export default api;
 
 // Money helpers: the API stores integer paise; UI shows rupees.
