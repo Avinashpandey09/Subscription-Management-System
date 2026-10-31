@@ -7,7 +7,11 @@ export default function StaffManagement() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
 
-  const load = () => api.get('/admin/staff').then((r) => setStaff(r.data.staff));
+  const load = () =>
+    api
+      .get('/admin/staff')
+      .then((r) => setStaff(r.data.staff))
+      .catch((err) => setError(err.response?.data?.message || 'Failed to load staff'));
   useEffect(() => {
     load();
   }, []);
@@ -18,6 +22,7 @@ export default function StaffManagement() {
       <div className="row">
         <button onClick={() => { setShow(true); setError(''); }}>Add staff</button>
       </div>
+      {error && !show && <div className="error">{error}</div>}
       <div className="card mt">
         <table className="grid">
           <thead>
@@ -31,17 +36,17 @@ export default function StaffManagement() {
           </thead>
           <tbody>
             {staff.map((s) => (
-              <tr key={s._id}>
+              <tr key={s.id}>
                 <td>{s.name}</td>
                 <td>{s.email}</td>
                 <td><span className="badge blue">{s.role}</span></td>
-                <td>{new Date(s.createdAt).toLocaleDateString()}</td>
+                <td>{new Date(s.created_at).toLocaleDateString()}</td>
                 <td>
                   <button
                     className="secondary"
                     onClick={async () => {
                       if (!window.confirm(`Remove ${s.name}?`)) return;
-                      await api.delete(`/admin/staff/${s._id}`);
+                      await api.delete(`/admin/staff/${s.id}`);
                       load();
                     }}
                   >

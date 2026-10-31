@@ -40,7 +40,7 @@ Open **http://localhost:5173** in a browser. Seed logins (password `Demo@1234`):
 | # | Module | Backend (`server/src/`) | Frontend (`client/src/`) |
 |---|--------|-------------------------|--------------------------|
 | 1 | Auth, RBAC, staff | `models/User.js`, `models/PasswordReset.js`, `middleware/auth.js`, `middleware/rbac.js`, `services/auth.service.js`, `routes/auth.routes.js` + `routes/admin.routes.js`, `controllers/auth.controller.js` | `auth/AuthContext.jsx`, `auth/ProtectedRoute.jsx`, `pages/Login.jsx`, `pages/Signup.jsx`, `pages/ForgotPassword.jsx`, `pages/ResetPassword.jsx`, `pages/admin/StaffManagement.jsx` |
-| 2 | Catalog, plans, taxes, discounts | `models/Product.js`, `models/Plan.js`, `models/Tax.js`, `models/Discount.js`, `services/tax.service.js`, `services/discount.service.js`, `routes/catalog.routes.js`, `controllers/catalog.controller.js` | `pages/admin/ProductsPage.jsx`, `pages/admin/PlansPage.jsx`, `pages/admin/TaxesDiscountsPage.jsx` |
+| 2 | Catalog, plans, taxes, discounts | Product records and variants: `server/models/product.py`, `server/schemas/products.py`, `server/routes/catalog.py` | `client/src/pages/admin/ProductsPage.jsx`, `pages/admin/PlansPage.jsx`, `pages/admin/TaxesDiscountsPage.jsx` |
 | 3 | Quotations & lifecycle | `models/QuotationTemplate.js`, `models/Subscription.js`, `utils/numbering.js`, `routes/subscription.routes.js`, `controllers/subscription.controller.js` | `pages/staff/SubscriptionsPage.jsx`, `pages/staff/SubscriptionDetail.jsx` |
 | 4 | Billing & invoicing | `models/Invoice.js`, `services/billing.service.js`, `jobs/billing.cron.js`, `utils/pdf.js`, `routes/invoice.routes.js`, `controllers/invoice.controller.js` | `pages/staff/InvoicesPage.jsx` |
 | 5 | Payments | `models/Payment.js`, `services/payment.service.js`, `routes/payment.routes.js`, `controllers/payment.controller.js` | `pages/staff/PaymentsPage.jsx`, `pages/staff/RecordPaymentModal.jsx` |
@@ -54,7 +54,8 @@ Note: `POST /api/admin/staff` (admin-only staff creation) lives in
 - `POST /api/auth/signup|login|logout`, `GET /api/auth/me`
 - `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
 - `POST /api/admin/staff` (admin only)
-- `/api/catalog/products|plans|taxes|discounts` (GET open, writes admin-only)
+- `GET /api/catalog/products` supports `page`, `pageSize`, and `isActive` query parameters; `GET /api/catalog/products/{id}` includes variant final prices; product writes and status changes are admin-only
+- `/api/catalog/plans|taxes|discounts` (GET open, writes admin-only)
 - `/api/subscriptions`, `/api/subscriptions/from-template/:id`, `PATCH /:id/status`, `POST /:id/renew`
 - `/api/invoices`, `POST /api/invoices/run-billing`, `GET /:id/pdf`, `POST /:id/send`
 - `/api/payments`, `GET /api/dashboard`

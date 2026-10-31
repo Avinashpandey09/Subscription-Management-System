@@ -4,7 +4,5 @@ dist/
 .env
 npm-debug.log*
 .DS_Store
-.env
-__init__.py
 __pycache__/
 venv

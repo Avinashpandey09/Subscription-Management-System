@@ -10,10 +10,10 @@ from config.db import Base
 
 class UserRole(str, Enum):
     ADMIN = "admin"
-    STAFF = "staff" 
+    STAFF = "staff"
     CUSTOMER = "customer"
- 
- 
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -51,5 +51,15 @@ class User(Base):
         index=True
     )
 
-     
- 
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
