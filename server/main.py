@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from config.db import Base, engine, normalize_user_role_enum
+from config.db import Base, engine
 from models import user  
 
 app = FastAPI()
@@ -16,7 +15,7 @@ app.add_middleware(
 )
 
 
-normalize_user_role_enum()
+ 
 Base.metadata.create_all(bind=engine)
 
 
