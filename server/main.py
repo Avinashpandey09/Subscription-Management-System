@@ -1,10 +1,6 @@
 import os
 
-from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from starlette.exceptions import HTTPException as StarletteHTTPException
+
 
 from config.db import Base, engine, ensure_user_timestamps, normalize_user_role_enum
 from models import password_reset, product, user  # noqa: F401 — register tables for create_all
@@ -14,7 +10,7 @@ app = FastAPI(title="Subscription Management API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:5173")],
+
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../../api.js';
+import api, { getApiError } from '../../api.js';
 
 export default function StaffManagement() {
   const [staff, setStaff] = useState([]);
@@ -7,11 +7,7 @@ export default function StaffManagement() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
 
-  const load = () =>
-    api
-      .get('/admin/staff')
-      .then((r) => setStaff(r.data.staff))
-      .catch((err) => setError(err.response?.data?.message || 'Failed to load staff'));
+
   useEffect(() => {
     load();
   }, []);
@@ -73,8 +69,7 @@ export default function StaffManagement() {
                   setForm({ name: '', email: '', password: '' });
                   load();
                 } catch (err) {
-                  const issues = err.response?.data?.issues?.map((i) => i.message).join('. ');
-                  setError(issues || err.response?.data?.message || 'Failed');
+                  setError(getApiError(err, 'Failed to create staff member'));
                 }
               }}
             >

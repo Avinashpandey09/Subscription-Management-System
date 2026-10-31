@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import api from '../api.js';
+import api, { getApiError } from '../api.js';
 
 export default function ResetPassword() {
   const [params] = useSearchParams();
   const [password, setPassword] = useState('');
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   return (
     <div className="auth-wrap">
@@ -21,19 +22,22 @@ export default function ResetPassword() {
             onSubmit={async (e) => {
               e.preventDefault();
               setError('');
+              setSubmitting(true);
               try {
                 await api.post('/auth/reset-password', { token: params.get('token') || '', password });
                 setDone(true);
               } catch (err) {
-                const issues = err.response?.data?.issues?.map((i) => i.message).join('. ');
-                setError(issues || err.response?.data?.message || 'Reset failed');
+                setError(getApiError(err, 'Reset failed'));
+              } finally {
+                setSubmitting(false);
               }
             }}
           >
             <label>New password</label>
             <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+            <p className="hint">8-128 characters with uppercase, lowercase, number, and special character.</p>
             <div className="mt">
-              <button type="submit">Reset password</button>
+              <button type="submit" disabled={submitting}>{submitting ? 'Resetting...' : 'Reset password'}</button>
             </div>
             {error && <div className="error">{error}</div>}
           </form>
