@@ -1,6 +1,0 @@
-{
-  "name": "Smart Subscription Management System",
-  "description": "Automated subscription lifecycle, intelligent renewal detection, automated invoicing, failed payment recovery, and revenue analytics prototype.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
