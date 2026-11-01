@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+  
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Professional Print Styles for Invoices */
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Hide navigation, buttons, modals outside the invoice */
+  header, nav, .no-print, button, .ToastContainer {
+    display: none !important;
+  }
+
+  /* Make invoice print cleanly */
+  #printable-invoice {
+    display: block !important;
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  #printable-invoice * {
+    color: black !important;
+    background: transparent !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: none !important;
+  }
+}
